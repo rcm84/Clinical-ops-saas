@@ -4,7 +4,7 @@ from fastapi import APIRouter, status
 
 from src.application.services.document_service import DocumentService
 from src.infrastructure.repositories.in_memory_document_repository import InMemoryDocumentRepository
-from src.schemas.document import DocumentCreateRequest, DocumentResponse
+from src.schemas.document import ClinicalDocumentCreateRequest, ClinicalDocumentResponse
 from src.schemas.health import HealthResponse
 
 router = APIRouter()
@@ -19,10 +19,10 @@ def health_check() -> HealthResponse:
 
 @router.post(
     "/documents",
-    response_model=DocumentResponse,
+    response_model=ClinicalDocumentResponse,
     status_code=status.HTTP_201_CREATED,
     tags=["documents"],
 )
-def create_document(payload: DocumentCreateRequest) -> DocumentResponse:
+def create_document(payload: ClinicalDocumentCreateRequest) -> ClinicalDocumentResponse:
     document = _document_service.create_document(payload)
-    return DocumentResponse.model_validate(document.__dict__)
+    return ClinicalDocumentResponse.model_validate(document)
