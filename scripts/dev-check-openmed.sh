@@ -16,7 +16,7 @@ check_ok=0
 for path in "${HEALTH_PATHS[@]}"; do
   url="${OPENMED_BASE_URL%/}${path}"
   status="$(curl -sS -o /tmp/openmed-health.out -w '%{http_code}' "${url}" || true)"
-  if [[ "${status}" =~ ^2|3 ]]; then
+  if [[ "${status}" =~ ^[23][0-9]{2}$ ]]; then
     echo "[ok] ${url} -> HTTP ${status}"
     check_ok=1
     break
