@@ -57,6 +57,22 @@ curl -X POST "http://localhost:8000/documents" \
 - **schemas**: contratos request/response con Pydantic.
 - **application**: casos de uso y orquestación de lógica.
 - **domain**: entidades de negocio puras.
-- **infrastructure**: implementación técnica (repositorio en memoria temporal, sin base de datos real).
+- **infrastructure**: implementación técnica (repositorios SQLAlchemy con PostgreSQL).
+
+## Persistencia y migraciones
+
+- Configuración por entorno:
+  - `DATABASE_URL` (default: `postgresql+psycopg://postgres:postgres@localhost:5432/clinical_core`)
+  - `DB_ECHO` (`true|false`, default `false`)
+- Migración inicial con Alembic en `alembic/versions/0001_initial_persistence.py`.
+
+```bash
+cd apps/clinical-core
+alembic upgrade head
+```
+
+## Endpoint adicional
+
+- `POST /documents/analyze` → persiste documento y corrida de extracción inicial.
 
 Esta base está lista para crecer incorporando repositorios persistentes, autenticación y más casos de uso.
