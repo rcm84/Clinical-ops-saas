@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -51,3 +52,31 @@ class ClinicalDocumentResponse(BaseModel):
     raw_text: str
     status: ProcessingStatus
     created_at: datetime
+
+
+class ExtractionRunCreateRequest(BaseModel):
+    engine: str = Field(..., min_length=1)
+    engine_version: str = Field(..., min_length=1)
+    status: str = Field(default="completed", min_length=1)
+    raw_output_json: dict[str, Any] = Field(default_factory=dict)
+
+
+class ClinicalDocumentAnalyzeRequest(ClinicalDocumentCreateRequest):
+    extraction: ExtractionRunCreateRequest
+
+
+class ExtractionRunResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    document_id: UUID
+    engine: str
+    engine_version: str
+    status: str
+    raw_output_json: dict[str, Any]
+    created_at: datetime
+
+
+class ClinicalDocumentAnalyzeResponse(BaseModel):
+    document: ClinicalDocumentResponse
+    extraction_run: ExtractionRunResponse
