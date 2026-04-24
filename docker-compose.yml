@@ -1,3 +1,89 @@
 version: '3.9'
 
-services: {}
+# Entorno local mínimo para desarrollo del monorepo.
+# Nota: `clinical-core` y `web` se dejan como placeholders para conectar
+# cuando existan sus Dockerfiles/código ejecutable.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: clinical-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: clinical_ops
+      POSTGRES_USER: clinical_user
+      POSTGRES_PASSWORD: clinical_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      # Datos persistentes de PostgreSQL para no perder estado entre reinicios.
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clinical_user -d clinical_ops"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: clinical-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  openmed:
+    # Placeholder explícito: ajusta `build.context` al repo/ruta real de OpenMed
+    # o reemplaza por `image:` cuando tengas una imagen pública/privada válida.
+    build:
+      context: ../openmed
+      dockerfile: Dockerfile
+    container_name: clinical-openmed
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      OPENMED_PORT: 8080
+
+  clinical-core:
+    # Placeholder explícito: servicio aún no implementado en este monorepo.
+    image: busybox:1.36
+    container_name: clinical-core
+    command: ["sh", "-c", "echo 'clinical-core placeholder'; sleep infinity"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      openmed:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://clinical_user:clinical_pass@postgres:5432/clinical_ops
+      REDIS_URL: redis://redis:6379
+      # URL interna (DNS de Docker Compose) para hablar con OpenMed.
+      OPENMED_BASE_URL: http://openmed:8080
+    ports:
+      - "4000:4000"
+
+  web:
+    # Placeholder explícito: frontend aún no implementado en este monorepo.
+    image: busybox:1.36
+    container_name: clinical-web
+    command: ["sh", "-c", "echo 'web placeholder'; sleep infinity"]
+    depends_on:
+      clinical-core:
+        condition: service_started
+    environment:
+      CLINICAL_CORE_BASE_URL: http://clinical-core:4000
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres-data:
+  redis-data:
