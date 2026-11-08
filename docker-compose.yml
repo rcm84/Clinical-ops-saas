@@ -1,8 +1,7 @@
 version: '3.9'
 
 # Entorno local mínimo para desarrollo del monorepo.
-# Nota: `clinical-core` y `web` se dejan como placeholders para conectar
-# cuando existan sus Dockerfiles/código ejecutable.
+# PR 1: clinical-core y web ya no son placeholders; OpenMed usa imagen real.
 services:
   postgres:
     image: postgres:16-alpine
@@ -39,11 +38,12 @@ services:
       retries: 5
 
   openmed:
-    # Placeholder explícito: ajusta `build.context` al repo/ruta real de OpenMed
-    # o reemplaza por `image:` cuando tengas una imagen pública/privada válida.
-    build:
-      context: ../openmed
-      dockerfile: Dockerfile
+    # Imagen real (antes: build ../openmed, ruta que no existe en este repo).
+    # Verificar el tag antes del primer `compose up`:
+    #   docker pull ghcr.io/maziyarpanahi/openmed:3.1.0
+    # Si el tag no existe en GHCR, usar el tag estable verificado
+    # (último release de OpenMed: v3.2.0).
+    image: ghcr.io/maziyarpanahi/openmed:3.1.0
     container_name: clinical-openmed
     restart: unless-stopped
     ports:
@@ -51,11 +51,32 @@ services:
     environment:
       OPENMED_PORT: 8080
 
+  minio:
+    # S3 local para uploads (decisión PR 1); bucket real solo cuando toque.
+    image: quay.io/minio/minio:RELEASE.2025-10-15T17-29-55Z
+    container_name: clinical-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   clinical-core:
-    # Placeholder explícito: servicio aún no implementado en este monorepo.
-    image: busybox:1.36
+    build:
+      context: ./apps/clinical-core
+      dockerfile: Dockerfile
     container_name: clinical-core
-    command: ["sh", "-c", "echo 'clinical-core placeholder'; sleep infinity"]
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
@@ -68,14 +89,17 @@ services:
       REDIS_URL: redis://redis:6379
       # URL interna (DNS de Docker Compose) para hablar con OpenMed.
       OPENMED_BASE_URL: http://openmed:8080
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_BUCKET: ${S3_BUCKET:-clinical-docs}
     ports:
       - "4000:4000"
 
   web:
-    # Placeholder explícito: frontend aún no implementado en este monorepo.
-    image: busybox:1.36
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
     container_name: clinical-web
-    command: ["sh", "-c", "echo 'web placeholder'; sleep infinity"]
+    restart: unless-stopped
     depends_on:
       clinical-core:
         condition: service_started
@@ -87,3 +111,4 @@ services:
 volumes:
   postgres-data:
   redis-data:
+  minio-data:
