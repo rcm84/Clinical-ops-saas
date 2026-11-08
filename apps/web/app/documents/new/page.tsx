@@ -3,8 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { saveDocumentResult } from '@/components/document-storage';
-import { analyzeDocument } from '@/lib/clinicalCore';
+import { analyzeDocument, createDocument } from '@/lib/clinicalCore';
 import type {
   AnalyzeDocumentResponse,
   DocumentType,
@@ -41,18 +40,11 @@ export default function NewDocumentPage() {
     setError(null);
 
     try {
-      const response = await analyzeDocument({
-        ...form,
-        extraction: {
-          engine: 'openmed',
-          engine_version: 'mvp',
-          status: 'completed',
-          raw_output_json: {},
-        },
-      });
-
+      // Flujo real: crear documento -> encolar análisis (202) -> el worker
+      // lo procesa con OpenMed; el detalle se actualiza con polling.
+      const created = await createDocument(form);
+      const response = await analyzeDocument(created.id);
       setResult(response);
-      saveDocumentResult(response);
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -163,7 +155,7 @@ export default function NewDocumentPage() {
 
       {result ? (
         <article className="card">
-          <h2>Resultado</h2>
+          <h2>Análisis en cola</h2>
           <p>
             <strong>Documento ID:</strong> {result.document.id}
           </p>
@@ -171,10 +163,12 @@ export default function NewDocumentPage() {
             <strong>Estado:</strong> {result.document.status}
           </p>
           <p>
-            <strong>Análisis:</strong>{' '}
-            {Object.keys(result.extraction_run.raw_output_json).length > 0
-              ? 'Disponible'
-              : 'Sin contenido por ahora'}
+            <strong>Extraction run:</strong> {result.extraction_run.id} (
+            {result.extraction_run.status})
+          </p>
+          <p>
+            El worker lo está procesando con OpenMed. El detalle se actualiza
+            solo.
           </p>
           <p>
             <Link href={`/documents/${result.document.id}`}>
