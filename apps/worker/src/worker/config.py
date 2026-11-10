@@ -17,7 +17,7 @@ class Settings:
     retry_base_delay_seconds: float = float(os.getenv("WORKER_RETRY_BASE_DELAY_SECONDS", "2"))
     retry_max_delay_seconds: float = float(os.getenv("WORKER_RETRY_MAX_DELAY_SECONDS", "30"))
     openmed_base_url: str = os.getenv("OPENMED_BASE_URL", "http://localhost:8081")
-    openmed_analyze_path: str = os.getenv("OPENMED_ANALYZE_PATH", "/analyze-text")
+    openmed_analyze_path: str = os.getenv("OPENMED_ANALYZE_PATH", "/analyze")
     openmed_timeout_seconds: float = float(os.getenv("OPENMED_TIMEOUT_SECONDS", "30"))
     openmed_version: str = os.getenv("OPENMED_VERSION", "3.1.0")
 

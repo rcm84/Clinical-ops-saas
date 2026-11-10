@@ -113,7 +113,7 @@ services:
       REDIS_QUEUE_NAME: document_jobs
       REDIS_DLQ_NAME: document_jobs_dlq
       OPENMED_BASE_URL: http://openmed:8080
-      OPENMED_ANALYZE_PATH: /analyze-text
+      OPENMED_ANALYZE_PATH: /analyze
       OPENMED_VERSION: 3.2.0
 
   web:
