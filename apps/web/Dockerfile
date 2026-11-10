@@ -13,6 +13,8 @@ ARG NEXT_PUBLIC_CLINICAL_CORE_URL=http://localhost:4000
 ENV NEXT_PUBLIC_CLINICAL_CORE_URL=$NEXT_PUBLIC_CLINICAL_CORE_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# public/ no existe en el repo; crearla para que el COPY del runner no falle.
+RUN mkdir -p ./public
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
