@@ -39,11 +39,10 @@ services:
 
   openmed:
     # Imagen real (antes: build ../openmed, ruta que no existe en este repo).
-    # Verificar el tag antes del primer `compose up`:
-    #   docker pull ghcr.io/maziyarpanahi/openmed:3.1.0
-    # Si el tag no existe en GHCR, usar el tag estable verificado
-    # (último release de OpenMed: v3.2.0).
-    image: ghcr.io/maziyarpanahi/openmed:3.1.0
+    # Tag verificado en local el 2026-11-10: 3.1.0 no existe en GHCR;
+    # v3.2.0 sí, y con ese tag OpenMed levanta healthy.
+    #   docker pull ghcr.io/maziyarpanahi/openmed:v3.2.0
+    image: ghcr.io/maziyarpanahi/openmed:v3.2.0
     container_name: clinical-openmed
     restart: unless-stopped
     ports:

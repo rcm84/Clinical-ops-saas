@@ -13,7 +13,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Instalación global (no --user): uvicorn queda en /usr/local/bin,
+# visible para appuser. Con --user quedaba en /root/.local/bin y el
+# contenedor no lo encontraba al correr como appuser.
+RUN pip install --no-cache-dir --break-system-packages -r requirements.txt
 
 COPY src ./src
 COPY alembic ./alembic
