@@ -56,7 +56,7 @@ class ClinicalDocumentResponse(BaseModel):
 
 class ExtractionRunCreateRequest(BaseModel):
     engine: str = Field(..., min_length=1)
-    engine_version: str = Field(..., min_length=1)
+    engine_version: str = Field(default="3.1.0", min_length=1)
     status: str = Field(default="completed", min_length=1)
     raw_output_json: dict[str, Any] = Field(default_factory=dict)
 
@@ -80,3 +80,10 @@ class ExtractionRunResponse(BaseModel):
 class ClinicalDocumentAnalyzeResponse(BaseModel):
     document: ClinicalDocumentResponse
     extraction_run: ExtractionRunResponse
+
+
+class DocumentDetailResponse(BaseModel):
+    """Document plus its extraction runs, for the web polling flow."""
+
+    document: ClinicalDocumentResponse
+    extraction_runs: list[ExtractionRunResponse]

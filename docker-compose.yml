@@ -2,6 +2,7 @@ version: '3.9'
 
 # Entorno local mínimo para desarrollo del monorepo.
 # PR 1: clinical-core y web ya no son placeholders; OpenMed usa imagen real.
+# PR 2: worker robusto + web con URL de clinical-core como build arg.
 services:
   postgres:
     image: postgres:16-alpine
@@ -93,10 +94,36 @@ services:
     ports:
       - "4000:4000"
 
+  worker:
+    build:
+      context: ./apps/worker
+      dockerfile: Dockerfile
+    container_name: clinical-worker
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      openmed:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://clinical_user:clinical_pass@postgres:5432/clinical_ops
+      REDIS_URL: redis://redis:6379/0
+      REDIS_QUEUE_NAME: document_jobs
+      REDIS_DLQ_NAME: document_jobs_dlq
+      OPENMED_BASE_URL: http://openmed:8080
+      OPENMED_ANALYZE_PATH: /analyze
+      OPENMED_VERSION: 3.2.0
+
   web:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
+      args:
+        # Se hornea en el build de Next.js (variable NEXT_PUBLIC_*); en local
+        # el navegador alcanza clinical-core por localhost:4000.
+        NEXT_PUBLIC_CLINICAL_CORE_URL: ${NEXT_PUBLIC_CLINICAL_CORE_URL:-http://localhost:4000}
     container_name: clinical-web
     restart: unless-stopped
     depends_on:

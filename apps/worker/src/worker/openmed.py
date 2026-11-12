@@ -20,7 +20,7 @@ class OpenMedClient:
     def analyze_text(self, text: str, language: str) -> dict[str, Any]:
         response = self._http_client.post(
             settings.openmed_analyze_path,
-            json={"text": text, "language": language},
+            json={"text": text, "sentence_language": language},
         )
         response.raise_for_status()
         try:
