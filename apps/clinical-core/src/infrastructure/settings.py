@@ -12,6 +12,13 @@ class AppSettings:
         self.redis_dlq_name = os.getenv("REDIS_DLQ_NAME", "document_jobs_dlq")
         self.openmed_base_url = os.getenv("OPENMED_BASE_URL", "http://localhost:8080")
         self.openmed_timeout_seconds = float(os.getenv("OPENMED_TIMEOUT_SECONDS", "5"))
+        self.cors_allow_origins = [
+            origin.strip()
+            for origin in os.getenv(
+                "CORS_ALLOW_ORIGINS", "http://localhost:3000"
+            ).split(",")
+            if origin.strip()
+        ]
 
 
 settings = AppSettings()
