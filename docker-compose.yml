@@ -50,6 +50,9 @@ services:
       - "8080:8080"
     environment:
       OPENMED_PORT: 8080
+      # OpenMed v3.2.0 solo confía en localhost por defecto; core/worker lo
+      # llaman por el DNS de Docker (openmed) y sin esto da 400 Invalid host.
+      OPENMED_SERVICE_TRUSTED_HOSTS: openmed,localhost,127.0.0.1
 
   minio:
     # S3 local para uploads (decisión PR 1); bucket real solo cuando toque.
@@ -89,6 +92,8 @@ services:
       REDIS_URL: redis://redis:6379
       # URL interna (DNS de Docker Compose) para hablar con OpenMed.
       OPENMED_BASE_URL: http://openmed:8080
+      # Orígenes CORS que clinical-core permite (PR 3 los lee en settings).
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-http://localhost:3000}
       S3_ENDPOINT_URL: http://minio:9000
       S3_BUCKET: ${S3_BUCKET:-clinical-docs}
     ports:
